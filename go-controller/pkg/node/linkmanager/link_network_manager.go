@@ -141,6 +141,10 @@ func (c *Controller) DelAddress(address netlink.Addr) error {
 	if err != nil && !util.GetNetLinkOps().IsLinkNotFoundError(err) {
 		return fmt.Errorf("no valid link associated with addresses %s: %v", address.String(), err)
 	}
+	if link == nil {
+		klog.Infof(">>> link is nil")
+		return nil
+	}
 	klog.Infof("Link manager: deleting address %s from link %s", address.String(), link.Attrs().Name)
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -249,6 +253,9 @@ func (c *Controller) delAddressFromStore(linkName string, address netlink.Addr) 
 }
 
 func (c *Controller) isAddressValid(address netlink.Addr) bool {
+	if address.IP == nil {
+		return false
+	}
 	if address.LinkIndex == 0 {
 		return false
 	}
