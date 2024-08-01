@@ -266,24 +266,7 @@ func bootstrapOVSFlows() error {
 		return fmt.Errorf("failed to list ports on existing bridge br-int: %s, %w", stderr, err)
 	}
 
-	var bridge string
-	var patchPort string
-	// patch-br-int-to-<bridge name>_<node>
-	r := regexp.MustCompile("^patch-(.*)_.*?-to-br-int$")
-	for _, line := range strings.Split(portsOutput, "\n") {
-		matches := r.FindStringSubmatch(line)
-		if len(matches) == 2 {
-			patchPort = matches[0]
-			bridge = matches[1]
-			break
-		}
-	}
-
-	// hack
-	if (strings.Contains(bridge, "ovn_localnet")) {
-		klog.Infof(">>> ovn_localnet queried as bridge, ignoring")
-		return nil
-	}
+	bridge, patchPort := localnetInfo(portsOutput)
 
 	if len(bridge) == 0 {
 		// bridge exists but no patch port was found
@@ -345,4 +328,26 @@ func bootstrapOVSFlows() error {
 	}
 
 	return nil
+}
+
+// localnetInfo returns the patch port name and the bridge name for the default network
+func localnetInfo(portsOutput string) (string, string) {
+	var bridge string
+	var patchPort string
+	// patch-br-int-to-<bridge name>_<node>
+	r := regexp.MustCompile("^patch-(.*)_.*?-to-br-int$")
+	for _, line := range strings.Split(portsOutput, "\n") {
+		matches := r.FindStringSubmatch(line)
+		if len(matches) == 2 {
+			patchPort = matches[0]
+			bridge = matches[1]
+			if strings.Contains(patchPort, types.OVNLocalnetPort) {
+				bridge = ""
+				patchPort = ""
+				continue
+			}
+			break
+		}
+	}
+	return bridge, patchPort
 }
