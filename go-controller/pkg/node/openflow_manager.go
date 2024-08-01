@@ -2,14 +2,15 @@ package node
 
 import (
 	"fmt"
-	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/config"
-	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/types"
 	"net"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/config"
+	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/types"
 
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/util"
 	"github.com/pkg/errors"
@@ -276,6 +277,12 @@ func bootstrapOVSFlows() error {
 			bridge = matches[1]
 			break
 		}
+	}
+
+	// hack
+	if (strings.Contains(bridge, "ovn_localnet")) {
+		klog.Infof(">>> ovn_localnet queried as bridge, ignoring")
+		return nil
 	}
 
 	if len(bridge) == 0 {
