@@ -123,6 +123,12 @@ func (c *Controller) AddAddress(address netlink.Addr) error {
 	}
 	link, err := util.GetNetLinkOps().LinkByIndex(address.LinkIndex)
 	if err != nil {
+		if util.GetNetLinkOps().IsLinkNotFoundError(err) {
+			c.mu.Lock()
+			c.delLinkFromStoreByIndex(address.LinkIndex)
+			c.mu.Unlock()
+			return nil
+		}
 		return fmt.Errorf("no valid link associated with addresses %s: %v", address.String(), err)
 	}
 	klog.Infof("Link manager: adding address %s to link %s", address.String(), link.Attrs().Name)

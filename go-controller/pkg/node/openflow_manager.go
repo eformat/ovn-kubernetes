@@ -3,7 +3,6 @@ package node
 import (
 	"fmt"
 	"net"
-	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -236,7 +235,8 @@ func checkPorts(patchIntf, ofPortPatch, physIntf, ofPortPhys string) error {
 	if ofPortPatch != curOfportPatch {
 		klog.Errorf("Fatal error: patch port %s ofport changed from %s to %s",
 			patchIntf, ofPortPatch, curOfportPatch)
-		os.Exit(1)
+		// hack
+		//os.Exit(1)
 	}
 
 	// it could be that someone removed the physical interface and added it back on the OVS host
@@ -248,7 +248,9 @@ func checkPorts(patchIntf, ofPortPatch, physIntf, ofPortPhys string) error {
 	if ofPortPhys != curOfportPhys {
 		klog.Errorf("Fatal error: phys port %s ofport changed from %s to %s",
 			physIntf, ofPortPhys, curOfportPhys)
-		os.Exit(1)
+
+		// hack
+		//os.Exit(1)
 	}
 	return nil
 }

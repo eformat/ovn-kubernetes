@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -628,16 +629,17 @@ func generateRoutesForLink(link netlink.Link, isV6 bool) ([]netlink.Route, error
 	if isVRFSlaveDevice(link) {
 		vrfLink, err := util.GetNetLinkOps().LinkByIndex(link.Attrs().MasterIndex)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get VRF link from interface index %d: %v", link.Attrs().MasterIndex, err)
+			return nil, fmt.Errorf("failed to get VRF link from interface index %d: %w", link.Attrs().MasterIndex, err)
 		}
 		vrf, ok := vrfLink.(*netlink.Vrf)
 		if !ok {
-			return nil, fmt.Errorf("expected link %s to be VRF", vrfLink.Attrs().Name)
+			actualType := reflect.TypeOf(vrfLink)
+			return nil, fmt.Errorf("expected link %s to be type VRF, instead received type %s", vrfLink.Attrs().Name, actualType)
 		}
 		routeTable = int(vrf.Table)
 	}
 	filterRoute, filterMask := filterRouteByLinkTable(link.Attrs().Index, routeTable)
-	linkRoutes, err := util.GetNetLinkOps().RouteListFiltered(util.GetIPFamily(isV6), filterRoute, filterMask)	
+	linkRoutes, err := util.GetNetLinkOps().RouteListFiltered(util.GetIPFamily(isV6), filterRoute, filterMask)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get routes for link %s: %v", link.Attrs().Name, err)
 	}
@@ -1355,7 +1357,7 @@ func findLinkOnSameNetworkAsIP(ip net.IP, v4, v6 bool) (bool, netlink.Link, erro
 }
 
 func isVRFSlaveDevice(link netlink.Link) bool {
-	return link != nil && link.Attrs().Slave != nil && link.Attrs().Slave.SlaveType() == "vrf"
+	return link.Attrs().Slave != nil && link.Attrs().Slave.SlaveType() == "vrf"
 }
 
 // findLinkOnSameNetworkAsIPUsingLPM iterates through all links found locally building a map of addresses associated with
