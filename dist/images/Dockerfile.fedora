@@ -9,7 +9,11 @@
 # are built locally and included in the image (instead of the rpm)
 #
 
-FROM quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:db9d39fe95746bcd0f1759cf51e3d135b76ecd31356d218bafe117ada4432bb1
+# 4.16.5
+#FROM quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:db9d39fe95746bcd0f1759cf51e3d135b76ecd31356d218bafe117ada4432bb1
+
+# 4.16.7
+FROM quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5a369c0c2f23aa91be0eec7ea66348d8beb66d7cc31a0e792141f5625fe88c55
 
 USER root
 
